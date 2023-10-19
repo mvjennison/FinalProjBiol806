@@ -1,0 +1,303 @@
+---
+title: "october 18 final project ver"
+author: "MJ"
+date: "2023-10-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#installing a Grid Extra pacakge to make formatting our plots easier - this allows us to show plots side by side 
+#install.packages("gridExtra")
+library(gridExtra)
+```
+
+loading tidyverse, uploading the pollution download data
+```{r}
+library(tidyverse)
+library(dplyr)
+final.proj <- read.csv(file.choose())
+view(final.proj)
+```
+#Country : Name of the country
+#City : Name of the city
+#AQI Value : Overall AQI value of the city
+#AQI Category : Overall AQI category of the city
+#CO AQI Value : AQI value of Carbon Monoxide of the city
+#CO AQI Category : AQI category of Carbon Monoxide of the city
+#Ozone AQI Value : AQI value of Ozone of the city
+#Ozone AQI Category : AQI category of Ozone of the city
+#NO2 AQI Value : AQI value of Nitrogen Dioxide of the city
+#NO2 AQI Category : AQI category of Nitrogen Dioxide of the city
+#PM2.5 AQI Value : AQI value of Particulate Matter with a diameter of 2.5 micrometers or less of the city
+#PM2.5 AQI Category : AQI category of Particulate Matter with a diameter of 2.5 micrometers or less of the city
+
+
+
+
+
+classing the data 
+```{r}
+class(final.proj$Country)               #character
+class(final.proj$City)                  #character
+class(final.proj$AQI.Value)             #integer
+class(final.proj$AQI.Category)          #character
+class(final.proj$CO.AQI.Value)          #integer
+class(final.proj$Ozone.AQI.Value)       #integer
+class(final.proj$Ozone.AQI.Category)    #character
+class(final.proj$NO2.AQI.Value)         #integer
+class(final.proj$NO2.AQI.Category)      #character
+class(final.proj$PM2.5.AQI.Value)       #integer
+class(final.proj$PM2.5.AQI.Category)    #character
+```
+
+Making an object for all the data in the usa
+
+```{r}
+us.data <- final.proj %>%
+  filter(Country == "United States of America") %>%
+  na.omit() #just in case
+```
+
+
+
+Overall AQI Values 
+
+Including outlier (Durango, COLORADO @ AQI = 500)
+
+
+makign an object to contain this info (for side-by-side comparison ease later on)
+```{r}
+us.cities.AQI <- ggplot(data = us.data, aes(x = City, y = AQI.Value, color = AQI.Value)) + 
+  geom_point() +
+  scale_y_continuous(
+    breaks = seq(0, 500, by = 50),
+    limits = c(0, 500)
+  ) +
+  scale_color_gradient(low = "lightgreen", high = "brown") +
+  labs(title = "AQI Values for Various US Cities", x = "Cities in the United States", y = "AQI Value") +
+  theme(axis.text.x = element_blank()) #keeps from having all the city names listed (too many to create a visible/accessible x-axis)
+
+print(us.cities.AQI)
+```
+
+
+Omitting the AQI=500 outlier point - now it is just AQI values of different US cities
+```{r}
+us.cities.AQI.noOutlier <- ggplot(data = us.data, aes(x = City, y = AQI.Value, color = AQI.Value)) + 
+  geom_point() +
+  scale_y_continuous(             #formatting the y-axis
+    breaks = seq(0, 175, by = 25),
+    limits = c(0, 175)        
+  ) + #the following makes a color gradient 
+  scale_color_gradient(low = "lightgreen", high = "darkgreen", breaks = seq(0, 175, by = 25), limits = c(0, 175)) +
+  labs(title = "AQI Values for Various US Cities*", x = "Cities in the United States", y = "AQI Value") +
+  theme(axis.text.x = element_blank()) #keeps from having all the city names listed (too many to create a visible/accessible x-axis)
+print(us.cities.AQI.noOutlier)
+
+#the warning saying there is a missing value is due to the exclusion of the outlier while using the original us city data set
+```
+if we want to see these plots side by side:
+```{r}
+grid.arrange(us.cities.AQI, us.cities.AQI.noOutlier, ncol = 2)
+
+```
+
+
+defining custom colors for use in plots
+```{r}
+custom_colors <- c(
+  "Good" = "green",
+  "Moderate" = "yellow",
+  "Unhealthy for Sensitive Groups" = "orange",
+  "Unhealthy" = "red",
+  "Very Unhealthy" = "purple",
+  "Hazardous" = "brown"
+)
+
+```
+
+
+
+
+OZONE PLOTS
+
+
+```{r}
+us.cities.ozone.scatter <- ggplot(data = us.data, aes(x = City, y = Ozone.AQI.Value, color = Ozone.AQI.Value)) + 
+  geom_point() +
+  scale_y_continuous(             #formatting the y-axis
+    breaks = seq(0, 150, by = 25),
+    limits = c(0, 150)        
+  ) + #the following makes a color gradient 
+  scale_color_gradient(low = "green", high = "brown", breaks = seq(0, 150, by = 25), limits = c(0, 150)) +
+  labs(title = "Ozone AQI Values for Various US Cities", x = "Cities in the United States", y = "Ozone AQI Value") +
+  scale_fill_manual(values = custom_colors) + theme(
+        plot.title = element_text(size = 10))  
+
+print(us.cities.ozone.scatter)
+```
+
+summarizing data!!
+```{r}
+us.ozone.cat <- us.data %>%
+  group_by(Ozone.AQI.Category) %>%
+  summarize(Count = n(), .groups = "drop")
+```
+
+
+bar plot for ozone
+
+```{r}
+us.cities.ozone.bar <- ggplot(us.ozone.cat, aes(x = Ozone.AQI.Category, y = Count, fill = Ozone.AQI.Category)) +
+  geom_bar(stat = "identity") +
+  labs(
+    title = "Ozone AQI Categorical Rating for Various US Cities",
+    x = "AQI Categories",
+    y = "Count"
+  ) +   scale_fill_manual(values = custom_colors) + theme(
+        plot.title = element_text(size = 10)) 
+print(us.cities.ozone.bar)
+```
+
+this allows us to see, side by side, the Ozone Values + Categorical Ranking for the US
+
+```{r}
+grid.arrange(us.cities.ozone.scatter, us.cities.ozone.bar, ncol = 2)
+```
+
+
+NO2
+
+
+
+no2 scatter plot
+
+```{r}
+us.cities.no2.scatter <- ggplot(data = us.data, aes(x = City, y = NO2.AQI.Value, color = NO2.AQI.Value)) + 
+  geom_point() +
+  scale_y_continuous(             #formatting the y-axis
+    breaks = seq(0, 150, by = 25),
+    limits = c(0, 150)        
+  ) + #the following makes a color gradient 
+  scale_color_gradient(low = "green", high = "brown", breaks = seq(0, 150, by = 25), limits = c(0, 150)) +
+  labs(title = "NO2 AQI Values for Various US Cities", x = "Cities in the United States", y = "NO2 AQI Value") +
+   scale_fill_manual(values = custom_colors) +   theme(axis.text.x = element_blank(),
+        plot.title = element_text(size = 10))
+print(us.cities.no2.scatter)
+```
+
+summarizing data for no2, sorting by group, and counting (for use in bar plot)
+
+```{r}
+us.no2.cat <- us.data %>%
+  group_by(NO2.AQI.Category) %>%
+  summarize(Count = n(), .groups = "drop")
+```
+
+
+bar plot for no2
+
+
+```{r}
+us.cities.no2.bar <- ggplot(us.no2.cat, aes(x = NO2.AQI.Category, y = Count, fill = NO2.AQI.Category)) +
+  geom_bar(stat = "identity") +
+  labs(
+    title = "NO2 AQI Categorical Rating for Various Cities",
+    x = "AQI Categories",
+    y = "Count"
+  ) +   scale_fill_manual(values = custom_colors) +
+ scale_fill_manual(values = custom_colors) + theme(
+        plot.title = element_text(size = 10)) 
+print(us.cities.no2.bar)
+```
+
+
+this allows us to see, side by side, the no2 Values + Categorical Ranking for the US
+
+```{r}
+grid.arrange(us.cities.no2.scatter, us.cities.no2.bar, ncol = 2)
+```
+
+  PM2.5 DATA
+  
+  
+making an object for PM2 scatter plot to be stored in <3
+
+
+note: there is again an outlier, where PM2.5 = 500 (Durango, again)
+
+plot for PM2.5 w/outlier
+```{r}
+us.cities.pm2.5.scatter <- ggplot(data = us.data, aes(x = City, y = PM2.5.AQI.Value, color = PM2.5.AQI.Value)) + 
+  geom_point() +
+  scale_y_continuous(             #formatting the y-axis
+    breaks = seq(0, 500, by = 50),
+    limits = c(0, 500)        
+  ) + #the following makes a color gradient 
+  scale_color_gradient(low = "green", high = "brown", breaks = seq(0, 500, by = 50), limits = c(0, 500)) +
+  labs(title = "PM2.5 AQI Values for Various US Cities", x = "Cities in the United States", y = "PM2.5 AQI Value") +
+   scale_fill_manual(values = custom_colors) +   theme(axis.text.x = element_blank(),
+        plot.title = element_text(size = 10))
+print(us.cities.pm2.5.scatter)
+```
+
+Plot for us PM2.5 w/o outlier (Durango = 500)
+
+```{r}
+us.cities.pm2.5.noOutlier.scatter <- ggplot(data = us.data, aes(x = City, y = PM2.5.AQI.Value, color = PM2.5.AQI.Value)) + 
+  geom_point() +
+  scale_y_continuous(             #formatting the y-axis
+    breaks = seq(0, 175, by = 25),
+    limits = c(0, 175)        
+  ) + #the following makes a color gradient 
+  scale_color_gradient(low = "lightgreen", high = "darkgreen", breaks = seq(0, 175, by = 25), limits = c(0, 175)) +
+  labs(title = "PM2.5 AQI Values for Various US Cities", x = "Cities in the United States", y = "PM2.5 AQI Value") +
+   scale_fill_manual(values = custom_colors) +   theme(axis.text.x = element_blank(),
+        plot.title = element_text(size = 10))
+print(us.cities.pm2.5.noOutlier.scatter)
+
+#the warning for 1 row containing missing values removed is the outlier being omitted from the plot for not fitting w/in the bounds. this is what we wanted.
+```
+if we want to see these plots side by side:
+```{r}
+grid.arrange(us.cities.pm2.5.scatter, us.cities.pm2.5.noOutlier.scatter, ncol = 2)
+```
+
+now: summarize the data for pm2/5
+```{r}
+us.pm2.5.cat <- us.data %>%
+  group_by(PM2.5.AQI.Category) %>%
+  summarize(Count = n(), .groups = "drop")
+```
+
+
+bar plot for pm2.5
+
+```{r}
+us.cities.pm2.5.bar <- ggplot(us.pm2.5.cat, aes(x = PM2.5.AQI.Category, y = Count, fill = PM2.5.AQI.Category)) +
+  geom_bar(stat = "identity") +
+  labs(
+    title = "PM2.5 AQI Categorical Rating for Various Cities",
+    x = "AQI Categories",
+    y = "Count"
+  ) +   scale_fill_manual(values = custom_colors) +
+ scale_fill_manual(values = custom_colors) + theme(
+        plot.title = element_text(size = 10), axis.text.x = element_text(size = 6)) 
+#adjusting the x-axis labels b/c the words are overlapping 
+print(us.cities.pm2.5.bar)
+```
+display the PM2.5 scatter plots side by side:
+
+```{r}
+grid.arrange(us.cities.pm2.5.scatter, us.cities.pm2.5.bar, ncol = 2)
+```
+
+
+```{r}
+grid.arrange(us.cities.AQI, us.cities.AQI.noOutlier, us.cities.ozone.scatter, us.cities.ozone.bar, us.cities.no2.scatter, us.cities.no2.bar, us.cities.pm2.5.noOutlier.scatter,us.cities.pm2.5.bar, ncol = 4)  
+
+```
