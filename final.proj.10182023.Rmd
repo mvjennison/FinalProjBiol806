@@ -301,3 +301,4 @@ grid.arrange(us.cities.pm2.5.scatter, us.cities.pm2.5.bar, ncol = 2)
 grid.arrange(us.cities.AQI, us.cities.AQI.noOutlier, us.cities.ozone.scatter, us.cities.ozone.bar, us.cities.no2.scatter, us.cities.no2.bar, us.cities.pm2.5.noOutlier.scatter,us.cities.pm2.5.bar, ncol = 4)  
 
 ```
+# it might be cool to use a smaller data set to develop statistical figure. This way we can allow the dots to become their own country - better for a reader to understand visually, and then we can make comparisons using the method facet wrap to make more conclusions. Lets focus on all the cities of the northeast, implement this change in the first R chunk, using filter and select commands. 
