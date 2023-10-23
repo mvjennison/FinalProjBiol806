@@ -132,6 +132,18 @@ custom_colors <- c(
 ```
 
 
+```{r}
+# Top 15 plotted aqi in USA
+
+top_aqi_usa <- ggplot(data = us.data_test, aes(x = City, y = AQI.Value )) +
+  coord_flip() +
+ geom_bar( stat = 'identity', fill = 'seagreen3') 
+
+top_aqi_usa
+
+
+
+```
 
 
 OZONE PLOTS
