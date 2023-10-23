@@ -1,6 +1,6 @@
 ---
 title: "october 18 final project ver"
-author: "MJ"
+author: "MJ" "Liv.Thrower"
 date: "2023-10-18"
 output: html_document
 ---
@@ -61,6 +61,17 @@ us.data <- final.proj %>%
   filter(Country == "United States of America") %>%
   na.omit() #just in case
 ```
+
+```{r}
+#Top 5 highest cities of AQI Value in USA.
+us.data_test <- final.proj %>%
+  select(Country,City, AQI.Value) %>%
+    filter(Country == "United States of America") %>%
+  arrange(desc(AQI.Value)) %>%
+slice(1:15)
+
+```
+
 
 
 
